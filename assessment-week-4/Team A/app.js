@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 
-const clothingRoutes = require("./routes/bookRoutes");
+const bookRoutes = require("./routes/bookRoutes");
 const logger = require("./middleware/logger");
 
 
