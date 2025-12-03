@@ -9,5 +9,6 @@ router.post('/', validateReview, reviewController.createReview);
 router.get('/:id', reviewController.getReviewById);
 router.delete('/:id', reviewController.deleteReview)
 
-
+router.get('/movieId/reviews', reviewController.getReviewsByMovie);
+router.post('/movieId/reviews', validateReview, reviewController.createReview);
 module.export = router;
