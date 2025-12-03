@@ -40,7 +40,7 @@ module.exports = (req, res, next) => {
   const starsNum = Number(stars);
 
   if (Number.isNaN(starsNum) || starsNum < 1 || starsNum > 5) {
-    return res.status(422).json({
+    return res.status(400).json({
       error: 'Stars must be a number between 1 and 5.'
     });
   }
