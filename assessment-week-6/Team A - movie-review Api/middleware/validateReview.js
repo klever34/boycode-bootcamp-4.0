@@ -16,25 +16,33 @@ module.exports = (req, res, next) => {
 
   const { reviewer, comment, stars } = req.body || {};
 
+  /* Reviewer validation */
   if (!reviewer || typeof reviewer !== 'string' || reviewer.trim() === '') {
-    return res.status(400).json({ message: 'Reviewer is required' });
+    return res.status(400).json({
+      error: 'Reviewer name is required. Please provide a valid non-empty name.'
+    });
   }
 
+  /* Comment validation */
   if (!comment || typeof comment !== 'string' || comment.trim() === '') {
-    return res.status(400).json({ message: 'Comment is required' });
+    return res.status(400).json({
+      error: 'A comment is required for every review, It cannot be empty.'
+    });
   }
 
+  /* Stars validation */
   if (stars === undefined || stars === null) {
-    return res.status(400).json({ message: 'Stars is required' });
+    return res.status(400).json({
+      error: 'Stars rating is required.'
+    });
   }
 
   const starsNum = Number(stars);
+
   if (Number.isNaN(starsNum) || starsNum < 1 || starsNum > 5) {
-    return res.status(400).json({ message: 'Stars must be a number between 1 and 5' });
+    return res.status(422).json({
+      error: 'Stars must be a number between 1 and 5.'
+    });
   }
-
-  // normalize stars to number
-  req.body.stars = starsNum;
-
   next();
 };
