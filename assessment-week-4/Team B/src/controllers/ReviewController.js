@@ -1,31 +1,25 @@
-const movies = require("../data/movies");
+const reviews = require("../data/reviews");
 
-// GET /movies?genre=action&year=2020
-exports.getMovies = (req, res) => {
-  const { genre, year } = req.query;
+// GET /reviews?movieId=2
+exports.getReviews = (req, res) => {
+  const { movieId } = req.query;
 
-  let result = movies;
+  let result = reviews;
 
-  if (genre) {
+  if (movieId) {
     result = result.filter(
-      (item) => item.genre.toLowerCase() === genre.toLowerCase()
-    );
-  }
-
-  if (year) {
-    result = result.filter(
-      (item) => item.year === parseInt(year)
+      (item) => item.movieId === parseInt(movieId)
     );
   }
 
   res.json(result);
 };
 
-// GET /movies/rating?rating[gte]=7
-exports.getMoviesByRating = (req, res) => {
+// GET /reviews/rating?rating[gte]=4
+exports.getReviewsByRating = (req, res) => {
   const { rating } = req.query;
 
-  let result = movies;
+  let result = reviews;
 
   if (rating && rating.gte) {
     result = result.filter(
@@ -36,21 +30,15 @@ exports.getMoviesByRating = (req, res) => {
   res.json(result);
 };
 
-// GET /movies/filter?genre=action&rating[gt]=8&sort=-year
-exports.getFilteredAndSortedMovies = (req, res) => {
-  const { genre, year, rating, sort } = req.query;
+// GET /reviews/filter?movieId=3&rating[gt]=4&sort=-rating
+exports.getFilteredAndSortedReviews = (req, res) => {
+  const { movieId, rating, sort } = req.query;
 
-  let result = movies;
+  let result = reviews;
 
   // FILTERS
-  if (genre) {
-    result = result.filter(
-      (item) => item.genre.toLowerCase() === genre.toLowerCase()
-    );
-  }
-
-  if (year) {
-    result = result.filter((item) => item.year === parseInt(year));
+  if (movieId) {
+    result = result.filter((item) => item.movieId === parseInt(movieId));
   }
 
   if (rating) {
@@ -75,9 +63,9 @@ exports.getFilteredAndSortedMovies = (req, res) => {
   res.json(result);
 };
 
-// GET /movies/paginate?page=2&limit=5
-exports.getMoviesWithPagination = (req, res) => {
-  let result = movies;
+// GET /reviews/paginate?page=1&limit=3
+exports.getReviewsWithPagination = (req, res) => {
+  let result = reviews;
 
   const limit = parseInt(req.query.limit) || 10;
   const page = parseInt(req.query.page) || 1;
