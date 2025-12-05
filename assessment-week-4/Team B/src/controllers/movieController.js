@@ -1,94 +1,89 @@
-const movies = require("../data/movies");
+let movies = require('../data/movies');
+const applyQueryFilters = require('../utils/queryFilter'); 
+const generateId = require('../utils/generateId'); 
 
-// GET /movies?genre=action&year=2020
-exports.getMovies = (req, res) => {
-  const { genre, year } = req.query;
-
-  let result = movies;
-
-  if (genre) {
-    result = result.filter(
-      (item) => item.genre.toLowerCase() === genre.toLowerCase()
-    );
-  }
-
-  if (year) {
-    result = result.filter(
-      (item) => item.year === parseInt(year)
-    );
-  }
-
-  res.json(result);
+const getAllMovies = (req, res) => {
+    const result = applyQueryFilters(movies, req.query);
+    
+    if (result.error) {
+        return res.status(400).json({ message: result.error });
+    }
+    res.json(result);
 };
 
-// GET /movies/rating?rating[gte]=7
-exports.getMoviesByRating = (req, res) => {
-  const { rating } = req.query;
-
-  let result = movies;
-
-  if (rating && rating.gte) {
-    result = result.filter(
-      (item) => item.rating >= parseFloat(rating.gte)
-    );
-  }
-
-  res.json(result);
+const getTopRatedMovies = (req, res) => {
+    const threshold = parseFloat(req.query.min_rating) || 4.5;
+    
+    const topMovies = movies.filter(m => m.rating && m.rating >= threshold);
+    
+    res.json(topMovies);
+};
+    
+const getMovieById = (req, res) => { 
+    const id = parseInt(req.params.id);
+    const movie = movies.find(m => m.id === id);
+    if (movie) {
+        res.json(movie);
+    } else {    
+        res.status(404).json({ message: 'Movie not found' });
+    }
 };
 
-// GET /movies/filter?genre=action&rating[gt]=8&sort=-year
-exports.getFilteredAndSortedMovies = (req, res) => {
-  const { genre, year, rating, sort } = req.query;
-
-  let result = movies;
-
-  // FILTERS
-  if (genre) {
-    result = result.filter(
-      (item) => item.genre.toLowerCase() === genre.toLowerCase()
-    );
-  }
-
-  if (year) {
-    result = result.filter((item) => item.year === parseInt(year));
-  }
-
-  if (rating) {
-    if (rating.gte) result = result.filter((item) => item.rating >= parseFloat(rating.gte));
-    if (rating.lte) result = result.filter((item) => item.rating <= parseFloat(rating.lte));
-    if (rating.gt)  result = result.filter((item) => item.rating > parseFloat(rating.gt));
-    if (rating.lt)  result = result.filter((item) => item.rating < parseFloat(rating.lt));
-  }
-
-  // SORTING
-  if (sort) {
-    const sortField = sort.startsWith("-") ? sort.slice(1) : sort;
-    const sortOrder = sort.startsWith("-") ? -1 : 1;
-
-    result = result.sort((a, b) => {
-      if (a[sortField] < b[sortField]) return -1 * sortOrder;
-      if (a[sortField] > b[sortField]) return 1 * sortOrder;
-      return 0;
-    });
-  }
-
-  res.json(result);
+const createMovie = (req, res) => {
+    const newId = generateId();
+    const newMovie = {
+        id: newId, 
+        ...req.body
+    };
+    movies.push(newMovie);
+    res.status(201).json(newMovie);
 };
 
-// GET /movies/paginate?page=2&limit=5
-exports.getMoviesWithPagination = (req, res) => {
-  let result = movies;
+const updateMovie = (req, res) => {
+    const id = parseInt(req.params.id);
+    const index = movies.findIndex(m => m.id === id);
 
-  const limit = parseInt(req.query.limit) || 10;
-  const page = parseInt(req.query.page) || 1;
+    if (index !== -1) {
+        const updatedMovie = { id, ...req.body };
+        movies[index] = updatedMovie;
+        res.json(updatedMovie);
+    } else {
+        res.status(404).json({ message: 'Movie not found' });
+    }
+};
 
-  const startIndex = (page - 1) * limit;
-  const endIndex = startIndex + limit;
+const patchMovie = (req, res) => {
+    const id = parseInt(req.params.id);
+    const index = movies.findIndex(m => m.id === id);
 
-  res.json({
-    page,
-    limit,
-    total: result.length,
-    results: result.slice(startIndex, endIndex)
-  });
+    if (index !== -1) {
+        movies[index] = { ...movies[index], ...req.body };
+        res.json(movies[index]);
+    } else {
+        res.status(404).json({ message: 'Movie not found' });
+    };
+};
+
+const deleteMovie = (req, res) => {
+    const id = parseInt(req.params.id);
+    const initialLength = movies.length;
+
+    movies = movies.filter(m => m.id !== id);
+
+    if (movies.length < initialLength) {
+        res.status(204).send();
+    }  else {
+        res.status(404).json({ message: 'Movie not found' });
+    }
+};
+
+module.exports = {
+    getAllMovies,
+    getMovieById,
+    createMovie,
+    updateMovie,
+    patchMovie,
+    deleteMovie,
+    
+    getTopRatedMovies
 };
